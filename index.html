@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>深潜档案：性向光谱测试</title>
+    <style>
+        :root { --primary: #2c3e50; --bg: #f8f9fa; --card: #ffffff; --text: #333333; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        #app { background: var(--card); max-width: 500px; width: 100%; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.05); padding: 30px; box-sizing: border-box; text-align: center; }
+        .hidden { display: none !important; }
+        h1 { font-size: 24px; margin-bottom: 10px; color: var(--primary); }
+        p { font-size: 16px; line-height: 1.6; margin-bottom: 30px; color: #666; }
+        .btn { display: block; width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #e9ecef; border-radius: 8px; background: transparent; font-size: 16px; cursor: pointer; transition: all 0.2s; }
+        .btn:hover { border-color: var(--primary); background: #f1f3f5; }
+        .btn-primary { background: var(--primary); color: white; border: none; font-weight: bold; }
+        .btn-primary:hover { background: #1a252f; }
+        .progress-bar { width: 100%; height: 6px; background: #e9ecef; border-radius: 3px; margin-bottom: 30px; overflow: hidden; }
+        .progress { height: 100%; background: var(--primary); transition: width 0.3s ease; }
+        .result-box { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid var(--primary); text-align: left; }
+    </style>
+</head>
+<body>
+
+<div id="app">
+    <!-- 欢迎页 -->
+    <div id="page-start">
+        <h1>深潜档案</h1>
+        <p>这是一个探索你底层性心理运行机制的测试。请基于第一直觉作答，耗时约1分钟。</p>
+        <button class="btn btn-primary" onclick="startTest()">开始检测</button>
+    </div>
+
+    <!-- 答题页 -->
+    <div id="page-quiz" class="hidden">
+        <div class="progress-bar"><div id="progress" class="progress" style="width: 0%;"></div></div>
+        <h2 id="question-text" style="font-size: 18px; margin-bottom: 25px; text-align: left;">题目加载中...</h2>
+        <div id="options-container"></div>
+    </div>
+
+    <!-- 结果页 -->
+    <div id="page-result" class="hidden">
+        <h2>你的光谱成分标签</h2>
+        <h1 id="result-title" style="font-size: 28px; margin: 10px 0;">加载中</h1>
+        <div class="result-box">
+            <p id="result-desc" style="margin:0;">诊断生成中...</p>
+        </div>
+        <p style="font-size: 14px; color: #888; margin-top: 30px;">想要进一步定制你的专属内容？</p>
+        <button class="btn btn-primary" onclick="window.location.href='https://你的完整问卷链接.com'">进入50题深度档案</button>
+    </div>
+</div>
+
+<script>
+    // 题库与分值设定 (后期只需修改这里)
+    const questions = [
+        {
+            text: "在一段亲密互动中，您如何看待‘爱’与‘性’的关系？",
+            options: [
+                { text: "必须有深厚情感基础，否则无法产生生理唤起", scores: { N: 1, S: 0 } },
+                { text: "可以通过纯粹的肉体吸引唤起，情感不是必要前置条件", scores: { N: 0, S: 1 } }
+            ]
+        },
+        {
+            text: "在互动中，对方的哪种状态更容易让你兴奋？",
+            options: [
+                { text: "对方完全服从我的指令，甚至带点被压迫感", scores: { D: 1, Sub: 0 } },
+                { text: "对方向我下达指令，我只需放弃思考并执行", scores: { D: 0, Sub: 1 } }
+            ]
+        },
+        {
+            text: "对于强烈的禁忌幻想（如强制、非人类设定），您的态度是？",
+            options: [
+                { text: "仅能在脑内幻想或作品中接受，绝对排斥现实发生", scores: { F: 1, R: 0 } },
+                { text: "如果条件允许，我渴望在现实中一比一复刻实践", scores: { F: 0, R: 1 } }
+            ]
+        }
+    ];
+
+    let currentQuestion = 0;
+    let userScores = { N: 0, S: 0, D: 0, Sub: 0, F: 0, R: 0 };
+
+    function startTest() {
+        document.getElementById('page-start').classList.add('hidden');
+        document.getElementById('page-quiz').classList.remove('hidden');
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = questions[currentQuestion];
+        document.getElementById('question-text').innerText = `${currentQuestion + 1}/${questions.length}. ` + q.text;
+        document.getElementById('progress').style.width = `${(currentQuestion / questions.length) * 100}%`;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn';
+            btn.innerText = opt.text;
+            btn.onclick = () => handleAnswer(opt.scores);
+            container.appendChild(btn);
+        });
+    }
+
+    function handleAnswer(scores) {
+        // 累加分数
+        for (let key in scores) {
+            userScores[key] += scores[key];
+        }
+        
+        currentQuestion++;
+        if (currentQuestion < questions.length) {
+            renderQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById('page-quiz').classList.add('hidden');
+        document.getElementById('page-result').classList.remove('hidden');
+        
+        // 计算最终标签维度
+        const dim1 = userScores.N >= userScores.S ? 'N' : 'S';
+        const dim2 = userScores.D >= userScores.Sub ? 'D' : 'Sub';
+        const dim3 = userScores.F >= userScores.R ? 'F' : 'R';
+        const mbti = dim1 + '-' + dim2 + '-' + dim3;
+
+        let title = "未知类型";
+        let desc = "数据不足，无法解析。";
+
+        // 结果字典判断
+        if (mbti === 'N-Sub-F') {
+            title = "赛博缚魂者";
+            desc = "你在脑内的幻想域里，渴望一场宏大且无可抗拒的剥夺。你不需要真实的痛楚，你需要的是‘在绝对的权力与宿命前放弃抵抗’的剧本带来的灵魂战栗。";
+        } else if (mbti === 'S-D-R') {
+            title = "古典解剖学者";
+            desc = "你是一个务实的狩猎者。你对花里胡哨的剧本毫无兴趣，极致的肉体和对方在你指令下的生理反应，是你唯一的兴奋剂。";
+        } else {
+            title = "探索者 (" + mbti + ")";
+            desc = "你的性心理成分独特且复杂，属于典型的复合型偏好群体。";
+        }
+
+        document.getElementById('result-title').innerText = title;
+        document.getElementById('result-desc').innerText = desc;
+    }
+</script>
+</body>
+</html>
