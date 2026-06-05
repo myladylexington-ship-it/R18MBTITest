@@ -115,6 +115,35 @@
         }
     }
 
+    // 新增：异步上传数据到 Google Sheets 的函数
+    async function saveRecordToDatabase(mbti, scores) {
+        // 替换为您刚才生成的 Web app URL
+        const GOOGLE_API_URL = 'https://script.google.com/macros/s/AKfycbyLVvgTq70oRFdCi9ZiV4jRZo02AzvzVLKmVi8PFBntgKO4rV7mDFZr53vVU57sScg_qQ/exec';
+    
+        const payload = {
+            mbti_type: mbti,
+            raw_scores: scores
+        };
+    
+        try {
+            const response = await fetch(GOOGLE_API_URL, {
+                method: 'POST',
+                // 注意：不要加 headers: {'Content-Type': 'application/json'}，否则会触发 CORS 报错
+                body: JSON.stringify(payload)
+            });
+    
+            const result = await response.json();
+            
+            if (result.status === "success") {
+                console.log('数据已成功写入谷歌表格');
+            } else {
+                console.error('写入失败:', result.message);
+            }
+        } catch (error) {
+            console.error('网络请求失败:', error);
+        }
+    }
+
     function showResult() {
         document.getElementById('page-quiz').classList.add('hidden');
         document.getElementById('page-result').classList.remove('hidden');
@@ -142,6 +171,9 @@
 
         document.getElementById('result-title').innerText = title;
         document.getElementById('result-desc').innerText = desc;
+
+        // 触发数据持久化上传，不阻塞用户的界面显示
+        saveRecordToDatabase(mbti, userScores);
     }
 </script>
 </body>
